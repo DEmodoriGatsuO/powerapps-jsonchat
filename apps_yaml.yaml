@@ -1,0 +1,328 @@
+- Chat Screen:
+    Control: Screen
+    Children:
+    - conMainScreen:
+        Control: GroupContainer
+        Variant: verticalAutoLayoutContainer
+        Properties:
+          Fill: =RGBA(245, 245, 245, 1)
+          Height: =Parent.Height
+          LayoutAlignItems: =LayoutAlignItems.Stretch
+          LayoutDirection: =LayoutDirection.Vertical
+          LayoutMode: =LayoutMode.Auto
+          Width: =Parent.Width
+        Children:
+        - conChatLayout:
+            Control: GroupContainer
+            Variant: horizontalAutoLayoutContainer
+            Properties:
+              Fill: =Color.White
+              LayoutAlignItems: =LayoutAlignItems.Stretch
+              LayoutMode: =LayoutMode.Auto
+              LayoutWrap: =true
+            Children:
+            - conChatListSidebar:
+                Control: GroupContainer
+                Variant: verticalAutoLayoutContainer
+                Properties:
+                  Fill: =RGBA(255, 255, 255, 1)
+                  FillPortions: =3
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMode: =LayoutMode.Auto
+                Children:
+                - conUserProfileHeader:
+                    Control: GroupContainer
+                    Variant: horizontalAutoLayoutContainer
+                    Properties:
+                      Fill: =Color.WhiteSmoke
+                      FillPortions: =0
+                      Height: =75
+                      LayoutAlignItems: =LayoutAlignItems.Center
+                      LayoutGap: =12
+                      LayoutMode: =LayoutMode.Auto
+                      PaddingBottom: =12
+                      PaddingLeft: =12
+                      PaddingRight: =12
+                      PaddingTop: =12
+                    Children:
+                    - imgUserProfile:
+                        Control: Image
+                        Properties:
+                          Image: =User().Image
+                          Height: =Parent.Height * 0.8
+                          RadiusBottomLeft: =Self.Height
+                          RadiusBottomRight: =Self.Height
+                          RadiusTopLeft: =Self.Height
+                          RadiusTopRight: =Self.Height
+                          Width: =Self.Height
+                    - lblUserName:
+                        Control: Label
+                        Properties:
+                          OnSelect: =
+                          Text: =Office365ユーザー.MyProfileV2().displayName
+                          FillPortions: =1
+                          Size: =16
+                - conNewChatHeader:
+                    Control: GroupContainer
+                    Variant: horizontalAutoLayoutContainer
+                    Properties:
+                      Fill: =RGBA(255, 255, 255, 1)
+                      FillPortions: =0
+                      Height: =75
+                      LayoutAlignItems: =LayoutAlignItems.Center
+                      LayoutGap: =12
+                      LayoutMode: =LayoutMode.Auto
+                      PaddingLeft: =12
+                      PaddingRight: =12
+                      RadiusBottomLeft: =0
+                      RadiusBottomRight: =0
+                      RadiusTopLeft: =0
+                      RadiusTopRight: =0
+                    Children:
+                    - icoNewChat:
+                        Control: Classic/Icon
+                        Variant: Add
+                        Properties:
+                          OnSelect: |-
+                            =UpdateContext({locMessageID: ""});
+                            Clear(colChat);
+                            UpdateContext({locFilter: false});
+                            UpdateContext({locFilter: true});
+                          Height: =32
+                          Icon: =Icon.Add
+                          Width: =32
+                    - lblicoNewChat:
+                        Control: Label
+                        Properties:
+                          OnSelect: =Select(icoNewChat);
+                          Text: =$"新しいチャット"
+                          AutoHeight: =true
+                          FillPortions: =1
+                          X: =76
+                          Y: =8
+                - galChatList:
+                    Control: Gallery
+                    Variant: galleryVertical
+                    Properties:
+                      OnSelect: |
+                        =UpdateContext({locMessageID: ThisItem.MessageID});
+                        ClearCollect(
+                            colChat,
+                            ForAll(
+                                Table(ParseJSON('get-json-content'.Run(locMessageID).response).Log) As Result,
+                                {
+                                    MessageIndex: Value(Result.Value.MessageIndex),
+                                    MessageText: Text(Result.Value.MessageText),
+                                    SenderName: Text(Result.Value.SenderName),
+                                    TimeStamp: DateTimeValue(Result.Value.TimeStamp)
+                                }
+                            )
+                        );
+                      Items: =Filter('sp-chatlib',locFilter)
+                      DelayItemLoading: =true
+                      Layout: =Layout.Vertical
+                      LoadingSpinner: =LoadingSpinner.Data
+                      TemplateFill: |-
+                        =If(
+                            ThisItem.MessageID = locMessageID,
+                            App.Theme.Colors.Lighter80,
+                            RGBA(
+                                0,
+                                0,
+                                0,
+                                0
+                            )
+                        )
+                      TemplatePadding: =0
+                      TemplateSize: =If(Self.Layout = Layout.Horizontal, Min(96, Self.Width - 60), Min(96, Self.Height - 60))
+                    Children:
+                    - lblCreatedTime:
+                        Control: Label
+                        Properties:
+                          OnSelect: =Select(Parent)
+                          Text: =DateTimeValue(ThisItem.CreatedTime)
+                          AutoHeight: =true
+                          Height: =24
+                          Width: =325
+                          X: =76
+                          Y: =48
+                    - txtAvatar:
+                        Control: Classic/TextInput
+                        Properties:
+                          OnSelect: =Select(Parent)
+                          Default: =Left(ThisItem.Subject,1)
+                          Align: =Align.Center
+                          DisabledColor: |-
+                            =If(
+                                ThisItem.MessageID = locMessageID,
+                                Color.White,
+                                Color.Black
+                            )
+                          DisabledFill: |-
+                            =If(
+                                ThisItem.MessageID = locMessageID,
+                                App.Theme.Colors.Darker40,
+                                Color.White
+                            )
+                          DisplayMode: =DisplayMode.Disabled
+                          Height: =52
+                          PaddingBottom: =0
+                          PaddingLeft: =0
+                          PaddingRight: =0
+                          PaddingTop: =0
+                          Width: =52
+                          X: =12
+                          Y: =20
+                    - lblChatTitle:
+                        Control: Label
+                        Properties:
+                          OnSelect: =Select(Parent)
+                          Text: =ThisItem.Subject
+                          FontWeight: |-
+                            =If(
+                                ThisItem.MessageID = locMessageID,
+                                FontWeight.Semibold,
+                                FontWeight.Normal
+                            )
+                          Size: =12
+                          Width: =240
+                          X: =76
+                          Y: =8
+            - conChatMain:
+                Control: GroupContainer
+                Variant: verticalAutoLayoutContainer
+                Properties:
+                  Fill: =Color.WhiteSmoke
+                  FillPortions: =7
+                  LayoutDirection: =LayoutDirection.Vertical
+                  LayoutMode: =LayoutMode.Auto
+                Children:
+                - conChatHeader:
+                    Control: GroupContainer
+                    Variant: horizontalAutoLayoutContainer
+                    Properties:
+                      Fill: =ColorFade(ColorValue("#F5F5F5"),50%)
+                      FillPortions: =0
+                      Height: =Parent.Height * 0.12
+                      LayoutAlignItems: =LayoutAlignItems.Center
+                      LayoutGap: =8
+                      LayoutMode: =LayoutMode.Auto
+                      PaddingLeft: =12
+                      PaddingRight: =12
+                      RadiusBottomLeft: =0
+                      RadiusBottomRight: =0
+                      RadiusTopLeft: =0
+                      RadiusTopRight: =0
+                    Children:
+                    - icoChatHeader:
+                        Control: Image
+                        Properties:
+                          OnSelect: =Clear(colChat);
+                          Image: "=\"data:image/svg+xml;utf8, \" & EncodeUrl(\"<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'>\r\n  \r\n  <circle cx='12' cy='12' r='11' fill='#128C7E'/>\r\n  \r\n  <path\r\n    d='M6 8.5C6 7.67157 6.67157 7 7.5 7H16.5C17.3284 7 18 7.67157 18 8.5V13.5C18 14.3284 17.3284 15 16.5 15H13L12 17L11 15H7.5C6.67157 15 6 14.3284 6 13.5V8.5Z'\r\n    fill='white'\r\n  />\r\n  <circle cx='9' cy='11' r='0.8' fill='#128C7E'/>\r\n  <circle cx='12' cy='11' r='0.8' fill='#128C7E'/>\r\n  <circle cx='15' cy='11' r='0.8' fill='#128C7E'/>\r\n</svg>\")"
+                          Height: =Parent.Height * 0.9
+                          Width: =Self.Height
+                    - lblChatHeader:
+                        Control: Label
+                        Properties:
+                          Text: =LookUp('sp-chatlib',MessageID = locMessageID).Subject
+                          AlignInContainer: =AlignInContainer.Center
+                          AutoHeight: =true
+                          FillPortions: =1
+                          Visible: =!IsBlank(locMessageID)
+                          X: =76
+                          Y: =8
+                - galMessages:
+                    Control: Gallery
+                    Variant: variableTemplateHeightGallery
+                    Properties:
+                      Items: =colChat
+                      DelayItemLoading: =true
+                      Layout: =Layout.Vertical
+                      LoadingSpinner: =LoadingSpinner.Data
+                      TemplatePadding: =4
+                      TemplateSize: '=72  '
+                    Children:
+                    - htmlMessageContent:
+                        Control: HtmlViewer
+                        Properties:
+                          OnSelect: =Select(Parent)
+                          HtmlText: |-
+                            =With(
+                                {
+                                    avatarStyle: "width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;",
+                                    messageWrapperBase: "max-width: 70%; margin-bottom: 16px; display: flex; gap: 8px;",
+                                    messageBubbleBase: "padding: 8px 12px; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);",
+                                    nameStyle: "font-size: 12px; color: #666666; margin-bottom: 4px;",
+                                    timeStyle: "font-size: 11px; color: #666666; text-align: right;"
+                                },
+                                Switch(
+                                    Mod(ThisItem.MessageIndex, 2),
+                                    0,
+                                    $"<div style='{messageWrapperBase} margin-right: auto;'>
+                                        <div style='{avatarStyle} background-color: #e0e0e0;'>
+                                            {Left(ThisItem.SenderName, 2)}
+                                        </div>
+                                        <div>
+                                            <div style='{nameStyle}'>{ThisItem.SenderName}</div>
+                                            <div style='{messageBubbleBase} background-color: #ffffff;'>
+                                                <div style='margin-bottom: 4px;'>{ThisItem.MessageText}</div>
+                                                <div style='{timeStyle}'>{ThisItem.TimeStamp}</div>
+                                            </div>
+                                        </div>
+                                    </div>",
+                                    1,
+                                    $"<div style='{messageWrapperBase} margin-left: auto; flex-direction: row-reverse;'>
+                                        <div style='{avatarStyle} background-color: #128C7E; color: white;'>Me</div>
+                                        <div>
+                                            <div style='{nameStyle} text-align: right;'>自分</div>
+                                            <div style='{messageBubbleBase} background-color: #dcf8c6;'>
+                                                <div style='margin-bottom: 4px;'>{ThisItem.MessageText}</div>
+                                                <div style='{timeStyle}'>{ThisItem.TimeStamp}</div>
+                                            </div>
+                                        </div>
+                                    </div>"
+                                )
+                            )
+                          AutoHeight: =true
+                          Font: =Font.'Open Sans'
+                          Height: =72
+                          Width: =Parent.TemplateWidth - 24
+                          X: =12
+                - conMessageInput:
+                    Control: GroupContainer
+                    Variant: horizontalAutoLayoutContainer
+                    Properties:
+                      Fill: =ColorFade(ColorValue("#F5F5F5"),50%)
+                      FillPortions: =0
+                      Height: =Parent.Height * 0.12
+                      LayoutAlignItems: =LayoutAlignItems.Center
+                      LayoutGap: =12
+                      LayoutMode: =LayoutMode.Auto
+                      PaddingLeft: =12
+                      PaddingRight: =12
+                      RadiusBottomLeft: =0
+                      RadiusBottomRight: =0
+                      RadiusTopLeft: =0
+                      RadiusTopRight: =0
+                    Children:
+                    - inpMessageText:
+                        Control: Classic/TextInput
+                        Properties:
+                          Default: =
+                          BorderThickness: =1
+                          FillPortions: =1
+                          Height: =52
+                          RadiusBottomLeft: =8
+                          RadiusBottomRight: =8
+                          RadiusTopLeft: =8
+                          RadiusTopRight: =8
+                    - btnSendMessage:
+                        Control: Button
+                        Properties:
+                          OnSelect: "=If(\n    CountRows(colChat) = 0,\n    // Me\n    ClearCollect(\n        colChat,\n        {\n            MessageIndex: 1,\n            SenderName: Office365ユーザー.MyProfileV2().displayName,\n            MessageText: inpMessageText.Text,\n            TimeStamp: Now()\n        }\n    );\n    Collect(\n        colChat,\n        {\n            MessageIndex: (CountRows(colChat) + 1),\n            SenderName: \"AI Builder\",\n            MessageText: 'AI Reply'.Predict(inpMessageText.Text).Text,\n            TimeStamp: Now()\n        }\n    );\n    UpdateContext({locAiResponse: 'Custom-prompt-response'.Predict(inpMessageText.Text).StructuredOutput});\n    ,\n    Collect(\n        colChat,\n        {\n            MessageIndex: (CountRows(colChat) + 1),\n            SenderName: Office365ユーザー.MyProfileV2().displayName,\n            MessageText: inpMessageText.Text,\n            TimeStamp: Now()\n        }\n    );\n    Collect(\n        colChat,\n        {\n            MessageIndex: (CountRows(colChat) + 1),\n            SenderName: \"AI Builder\",\n            MessageText: 'AI Reply'.Predict(inpMessageText.Text).Text,\n            TimeStamp: Now()\n        }\n    );\n    \n);\nWith(\n    {\n        FirstPost: First(colChat),\n        LastPost: Last(colChat)\n    },\n    UpdateContext(\n        {\n            spMetaData: {\n                MessageID: Coalesce(\n                    locMessageID,\n                    Text(GUID())\n                ),\n                LastMessageText: LastPost.MessageText,\n                LastMessageTime: LastPost.TimeStamp,\n                LastSender: LastPost.SenderName,\n                MessageCount: CountRows(colChat),\n                CreateBy: FirstPost.SenderName,\n                CreatedTime: FirstPost.TimeStamp,\n                UpdatedTime: LastPost.TimeStamp,\n                Subject: Coalesce(\n                    locAiResponse.response,\n                    galChatList.Selected.Subject\n                ),\n                Fill: Coalesce(\n                    locAiResponse.fill,\n                    galChatList.Selected.Fill\n                ),\n                FontColor: Coalesce(\n                    locAiResponse.fontcolor,\n                    galChatList.Selected.FontColor\n                )\n            }\n        }\n    )\n);\nUpdateContext(\n    {\n        locMessageID: 'post-json-chat'.Run(\n            JSON(spMetaData),\n            JSON(\n                {Log: Table(colChat)},\n                JSONFormat.Compact\n            )\n        ).messageid\n    }\n);\nReset(inpMessageText);\nUpdateContext({locFilter: false});\nUpdateContext({locFilter: true});\n"
+                          BorderRadius: =8
+                          Icon: ="Chat"
+                          Layout: ='ButtonCanvas.Layout'.IconOnly
+                          Text: ="送信"
+                          Height: =52
+                          Width: =52
